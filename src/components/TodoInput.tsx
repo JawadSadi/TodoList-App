@@ -4,30 +4,37 @@ import { useTodoStore } from "../store/todoStore";
 
 export default function TodoInput() {
   const [text, setText] = useState("");
+  const [deadline, setDeadline] = useState("");
   const { addTodo, currentCategory } = useTodoStore();
 
   const handleAdd = () => {
-    if (text.trim()) {
-      addTodo(text, currentCategory);
-      setText("");
-    }
+    if (!text.trim()) return;
+    addTodo(text, currentCategory, deadline);
+    setText("");
+    setDeadline("");
   };
 
   return (
-    <div className="flex gap-2 mb-4">
+    <div className="flex flex-col gap-3 mb-4">
       <input
         type="text"
         value={text}
         placeholder={`Add a task to ${currentCategory}`}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleAdd()}
-        className="flex-1 px-3 py-2 border rounded"
+        className="px-3 py-2 border rounded"
+      />
+      <input
+        type="date"
+        value={deadline}
+        onChange={(e) => setDeadline(e.target.value)}
+        className="px-3 py-2 border rounded"
       />
       <button
         onClick={handleAdd}
-        className="bg-blue-500 text-white px-4 rounded"
+        className="bg-blue-500 text-white px-4 py-2 rounded w-fit"
       >
-        Add
+        Add Task
       </button>
     </div>
   );
