@@ -25,7 +25,7 @@ export default function TodoInput() {
         className="px-3 py-2 border rounded"
       />
       <input
-        type="date"
+        type="datetime-local"
         value={deadline}
         onChange={(e) => setDeadline(e.target.value)}
         className="px-3 py-2 border rounded"

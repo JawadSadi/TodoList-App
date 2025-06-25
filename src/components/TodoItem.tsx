@@ -26,7 +26,13 @@ export default function TodoItem({ todo }: { todo: Todo }) {
           onClick={() => toggleTodo(todo.id)}
         >
           {todo.text}
+          {isToday && !todo.completed && (
+            <span className="text-xs text-blue-600 font-semibold">
+              🔔 Today’s Task
+            </span>
+          )}
         </span>
+
         <button
           onClick={() => deleteTodo(todo.id)}
           className="text-red-500 hover:text-red-700 ml-4"

@@ -4,5 +4,6 @@ export interface Todo {
   completed: boolean;
   createdAt: number;
   category: string;
-  deadline?: string; // ← تاریخ نهایی اختیاری
+  deadline?: string;
+  notified?: boolean; // ← تاریخ نهایی اختیاری
 }

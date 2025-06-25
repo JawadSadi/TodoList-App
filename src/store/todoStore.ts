@@ -10,11 +10,12 @@ type TodoState = {
   toggleTodo: (id: string) => void;
   deleteTodo: (id: string) => void;
   setCategory: (cat: string) => void;
+  markAsNotified: (id: string) => void;
 };
 
 export const useTodoStore = create<TodoState>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       todos: [],
       currentCategory: "Today",
       addTodo: (text, category, deadline) =>
@@ -28,6 +29,7 @@ export const useTodoStore = create<TodoState>()(
               createdAt: Date.now(),
               category,
               deadline,
+              notified: false,
             },
           ],
         })),
@@ -42,7 +44,14 @@ export const useTodoStore = create<TodoState>()(
           todos: state.todos.filter((todo) => todo.id !== id),
         })),
       setCategory: (cat) => set({ currentCategory: cat }),
+      markAsNotified: (id: string) =>
+        set((state) => ({
+          todos: state.todos.map((todo) =>
+            todo.id === id ? { ...todo, notified: true } : todo
+          ),
+        })),
     }),
+
     {
       name: "todo-storage", // key برای ذخیره در localStorage
       partialize: (state) => ({ todos: state.todos }), // فقط todos ذخیره شود
