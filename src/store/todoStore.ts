@@ -11,6 +11,7 @@ type TodoState = {
   deleteTodo: (id: string) => void;
   setCategory: (cat: string) => void;
   markAsNotified: (id: string) => void;
+  editTodo: (id: string, newText: string, newDeadline?: string) => void;
 };
 
 export const useTodoStore = create<TodoState>()(
@@ -48,6 +49,19 @@ export const useTodoStore = create<TodoState>()(
         set((state) => ({
           todos: state.todos.map((todo) =>
             todo.id === id ? { ...todo, notified: true } : todo
+          ),
+        })),
+      editTodo: (id, newText, newDeadline) =>
+        set((state) => ({
+          todos: state.todos.map((todo) =>
+            todo.id === id
+              ? {
+                  ...todo,
+                  text: newText,
+                  deadline: newDeadline,
+                  notified: false, // چون deadline تغییر کرده، یادآوری دوباره فعال شود
+                }
+              : todo
           ),
         })),
     }),
