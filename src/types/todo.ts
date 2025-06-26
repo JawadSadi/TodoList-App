@@ -5,5 +5,8 @@ export interface Todo {
   createdAt: number;
   category: string;
   deadline?: string;
-  notified?: boolean; // ← تاریخ نهایی اختیاری
+  notified?: boolean;
+  searchTerm: string;
+  setSearchTerm: (term: string) => void;
+  // ← تاریخ نهایی اختیاری
 }

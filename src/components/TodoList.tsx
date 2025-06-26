@@ -3,9 +3,13 @@ import { useTodoStore } from "../store/todoStore";
 import TodoItem from "./TodoItem";
 
 export default function TodoList() {
-  const { todos, currentCategory } = useTodoStore();
+  const { todos, currentCategory, searchTerm } = useTodoStore();
 
-  const filtered = todos.filter((t) => t.category === currentCategory);
+  const filtered = todos.filter(
+    (todo) =>
+      todo.category === currentCategory &&
+      todo.text.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   return (
     <ul className="space-y-2">
