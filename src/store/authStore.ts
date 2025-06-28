@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useTodoStore } from "./todoStore";
 
 type AuthState = {
   currentUser: string | null;
@@ -16,28 +17,38 @@ export const useAuthStore = create<AuthState>()(
       users: [],
 
       signup: (username, password) => {
-        const exists = get().users.find((u) => u.username === username);
-        if (exists) return false;
+        const existingUser = get().users.find((u) => u.username === username);
+        if (existingUser) return false; // کاربر تکراری است
 
-        set((state) => ({
-          users: [...state.users, { username, password }],
+        const newUser = { username, password };
+        const updatedUsers = [...get().users, newUser];
+
+        set({
+          users: updatedUsers,
           currentUser: username,
-        }));
+        });
+
+        // همگام‌سازی با todoStore
+        useTodoStore.getState().setCurrentUser(username);
+
         return true;
       },
-
       login: (username, password) => {
         const found = get().users.find(
           (u) => u.username === username && u.password === password
         );
         if (found) {
           set({ currentUser: username });
+          useTodoStore.getState().setCurrentUser(username); // sync with todo store
           return true;
         }
         return false;
       },
 
-      logout: () => set({ currentUser: null }),
+      logout: () => {
+        set({ currentUser: null });
+        useTodoStore.getState().setCurrentUser(null);
+      },
     }),
     { name: "auth-storage" }
   )

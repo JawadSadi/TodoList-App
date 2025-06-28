@@ -4,20 +4,20 @@ import { useAuthStore } from "../store/authStore";
 
 export default function Sidebar() {
   const {
-    categories,
     currentCategory,
     setCategory,
     addCategory,
     editCategory,
     deleteCategory,
   } = useTodoStore();
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const categoriesByUser = useTodoStore((s) => s.categoriesByUser);
+  const categories = categoriesByUser[currentUser ?? ""] || ["General"];
 
   const [newCategory, setNewCategory] = useState("");
   const [editing, setEditing] = useState<string | null>(null);
   const [editText, setEditText] = useState("");
-
   const logout = useAuthStore((s) => s.logout);
-  const currentUser = useAuthStore((s) => s.currentUser);
   const handleAddCategory = () => {
     const trimmed = newCategory.trim();
     if (trimmed && !categories.includes(trimmed)) {

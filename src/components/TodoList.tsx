@@ -1,10 +1,13 @@
 import { AnimatePresence } from "framer-motion";
 import { useTodoStore } from "../store/todoStore";
 import TodoItem from "./TodoItem";
+import { useAuthStore } from "../store/authStore";
 
 export default function TodoList() {
-  const { todos, currentCategory, searchTerm } = useTodoStore();
-
+  const { currentCategory, searchTerm } = useTodoStore();
+  const currentUser = useAuthStore((s) => s.currentUser);
+  const todosByUser = useTodoStore((s) => s.todosByUser);
+  const todos = todosByUser[currentUser ?? ""] || [];
   const filtered = todos.filter(
     (todo) =>
       todo.category === currentCategory &&

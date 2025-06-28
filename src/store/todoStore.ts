@@ -3,18 +3,29 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Todo } from "../types/todo";
 
+type TodosByUser = Record<string, Todo[]>;
+type CategoriesByUser = Record<string, string[]>;
+
 type TodoState = {
-  todos: Todo[];
+  currentUser: string | null;
+  todosByUser: TodosByUser;
+  categoriesByUser: CategoriesByUser;
   currentCategory: string;
+  searchTerm: string;
+
+  setCurrentUser: (username: string | null) => void;
+  getTodos: () => Todo[];
+  getCategories: () => string[];
+
   addTodo: (text: string, category: string, deadline?: string) => void;
   toggleTodo: (id: string) => void;
   deleteTodo: (id: string) => void;
-  setCategory: (name: string) => void;
   markAsNotified: (id: string) => void;
   editTodo: (id: string, newText: string, newDeadline?: string) => void;
-  searchTerm: string;
+
+  setCategory: (name: string) => void;
   setSearchTerm: (term: string) => void;
-  categories: string[];
+
   addCategory: (name: string) => void;
   editCategory: (oldName: string, newName: string) => void;
   deleteCategory: (name: string) => void;
@@ -22,93 +33,173 @@ type TodoState = {
 
 export const useTodoStore = create<TodoState>()(
   persist(
-    (set) => ({
-      todos: [],
-      categories: ["General"],
+    (set, get) => ({
+      currentUser: null,
+      todosByUser: {},
+      categoriesByUser: {},
       currentCategory: "General",
-      addCategory: (name) =>
-        set((state) => {
-          if (!state.categories.includes(name)) {
-            return { categories: [...state.categories, name] };
-          }
-          return state;
-        }),
+      searchTerm: "",
+
+      setCurrentUser: (username) => set({ currentUser: username }),
+
+      getTodos: () => {
+        const user = get().currentUser;
+        return user ? get().todosByUser[user] || [] : [];
+      },
+
+      getCategories: () => {
+        const user = get().currentUser;
+        return user ? get().categoriesByUser[user] || ["General"] : ["General"];
+      },
+
+      setSearchTerm: (term) => set({ searchTerm: term }),
 
       setCategory: (name) => set({ currentCategory: name }),
-      addTodo: (text, category, deadline) =>
+
+      addTodo: (text, category, deadline) => {
+        const user = get().currentUser;
+        if (!user) return;
+        const todos = get().todosByUser[user] || [];
+
+        const newTodo: Todo = {
+          id: crypto.randomUUID(),
+          text,
+          category,
+          deadline,
+          completed: false,
+          createdAt: Date.now(),
+          notified: false,
+        };
+
         set((state) => ({
-          todos: [
-            ...state.todos,
-            {
-              id: crypto.randomUUID(),
-              text,
-              completed: false,
-              createdAt: Date.now(),
-              category,
-              deadline,
-              notified: false,
+          todosByUser: {
+            ...state.todosByUser,
+            [user]: [...todos, newTodo],
+          },
+        }));
+      },
+
+      toggleTodo: (id) => {
+        const user = get().currentUser;
+        if (!user) return;
+        const todos = get().todosByUser[user] || [];
+        set((state) => ({
+          todosByUser: {
+            ...state.todosByUser,
+            [user]: todos.map((t) =>
+              t.id === id ? { ...t, completed: !t.completed } : t
+            ),
+          },
+        }));
+      },
+
+      deleteTodo: (id) => {
+        const user = get().currentUser;
+        if (!user) return;
+        const todos = get().todosByUser[user] || [];
+        set((state) => ({
+          todosByUser: {
+            ...state.todosByUser,
+            [user]: todos.filter((t) => t.id !== id),
+          },
+        }));
+      },
+
+      markAsNotified: (id) => {
+        const user = get().currentUser;
+        if (!user) return;
+        const todos = get().todosByUser[user] || [];
+        set((state) => ({
+          todosByUser: {
+            ...state.todosByUser,
+            [user]: todos.map((t) =>
+              t.id === id ? { ...t, notified: true } : t
+            ),
+          },
+        }));
+      },
+
+      editTodo: (id, newText, newDeadline) => {
+        const user = get().currentUser;
+        if (!user) return;
+        const todos = get().todosByUser[user] || [];
+        set((state) => ({
+          todosByUser: {
+            ...state.todosByUser,
+            [user]: todos.map((t) =>
+              t.id === id
+                ? {
+                    ...t,
+                    text: newText,
+                    deadline: newDeadline,
+                    notified: false,
+                  }
+                : t
+            ),
+          },
+        }));
+      },
+
+      addCategory: (name) => {
+        const user = get().currentUser;
+        if (!user) return;
+        const cats = get().categoriesByUser[user] || ["General"];
+        if (!cats.includes(name)) {
+          set((state) => ({
+            categoriesByUser: {
+              ...state.categoriesByUser,
+              [user]: [...cats, name],
             },
-          ],
-        })),
-      toggleTodo: (id) =>
+          }));
+        }
+      },
+
+      editCategory: (oldName, newName) => {
+        const user = get().currentUser;
+        if (!user) return;
+
+        const categories = get().categoriesByUser[user] || ["General"];
+        const todos = get().todosByUser[user] || [];
+
         set((state) => ({
-          todos: state.todos.map((todo) =>
-            todo.id === id ? { ...todo, completed: !todo.completed } : todo
-          ),
-        })),
-      deleteTodo: (id) =>
-        set((state) => ({
-          todos: state.todos.filter((todo) => todo.id !== id),
-        })),
-      markAsNotified: (id: string) =>
-        set((state) => ({
-          todos: state.todos.map((todo) =>
-            todo.id === id ? { ...todo, notified: true } : todo
-          ),
-        })),
-      editTodo: (id, newText, newDeadline) =>
-        set((state) => ({
-          todos: state.todos.map((todo) =>
-            todo.id === id
-              ? {
-                  ...todo,
-                  text: newText,
-                  deadline: newDeadline,
-                  notified: false, // چون deadline تغییر کرده، یادآوری دوباره فعال شود
-                }
-              : todo
-          ),
-        })),
-      searchTerm: "",
-      setSearchTerm: (term) => set({ searchTerm: term }),
-      editCategory: (oldName, newName) =>
-        set((state) => ({
-          categories: state.categories.map((cat) =>
-            cat === oldName ? newName : cat
-          ),
-          todos: state.todos.map((todo) =>
-            todo.category === oldName ? { ...todo, category: newName } : todo
-          ),
+          categoriesByUser: {
+            ...state.categoriesByUser,
+            [user]: categories.map((c) => (c === oldName ? newName : c)),
+          },
+          todosByUser: {
+            ...state.todosByUser,
+            [user]: todos.map((t) =>
+              t.category === oldName ? { ...t, category: newName } : t
+            ),
+          },
           currentCategory:
             state.currentCategory === oldName ? newName : state.currentCategory,
-        })),
+        }));
+      },
 
-      deleteCategory: (name) =>
+      deleteCategory: (name) => {
+        const user = get().currentUser;
+        if (!user) return;
+
+        const categories = get().categoriesByUser[user] || [];
+        const todos = get().todosByUser[user] || [];
+
         set((state) => ({
-          categories: state.categories.filter((cat) => cat !== name),
-          todos: state.todos.filter((todo) => todo.category !== name),
+          categoriesByUser: {
+            ...state.categoriesByUser,
+            [user]: categories.filter((c) => c !== name),
+          },
+          todosByUser: {
+            ...state.todosByUser,
+            [user]: todos.filter((t) => t.category !== name),
+          },
           currentCategory:
             state.currentCategory === name ? "General" : state.currentCategory,
-        })),
+        }));
+      },
     }),
-
     {
-      name: "todo-storage", // key برای ذخیره در localStorage
-      partialize: (state) => ({
-        todos: state.todos,
-        categories: state.categories,
-        currentCategory: state.currentCategory,
-      }), // فقط todos ذخیره شود
+      name: "todo-storage",
     }
   )
 );

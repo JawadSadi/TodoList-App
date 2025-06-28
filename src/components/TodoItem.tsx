@@ -29,8 +29,8 @@ export default function TodoItem({ todo }: { todo: Todo }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, x: -50 }}
       transition={{ duration: 0.3 }}
-      className={`flex flex-col border-b py-3 px-3 rounded-lg shadow-sm bg-green-200 ${
-        isOverdue ? "bg-red-100" : isToday ? "bg-yellow-100" : ""
+      className={`flex flex-col border-b py-3 px-3 rounded-lg shadow-sm ${
+        isOverdue ? "bg-red-200" : isToday ? "bg-yellow-200" : "bg-green-200"
       }`}
     >
       {isEditing ? (
