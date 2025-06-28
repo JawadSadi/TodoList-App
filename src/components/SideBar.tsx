@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTodoStore } from "../store/todoStore";
 import { useAuthStore } from "../store/authStore";
+import TodoSearch from "./TodoSearch";
 
 export default function Sidebar() {
   const {
@@ -35,12 +36,17 @@ export default function Sidebar() {
       setEditText("");
     }
   };
+  const handleLogout = () => {
+    logout();
+    window.location.href = "/login";
+  };
 
   return (
     <aside className="w-64 p-4 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white">
       <h2 className="text-xl font-bold mb-4">📁 Categories</h2>
 
       <ul className="space-y-2 mb-6">
+        <TodoSearch />
         {categories.map((cat) => (
           <li
             key={cat}
@@ -85,6 +91,7 @@ export default function Sidebar() {
             )}
           </li>
         ))}
+        <li></li>
       </ul>
 
       <div className="space-y-2">
@@ -102,9 +109,14 @@ export default function Sidebar() {
           + Add Category
         </button>
       </div>
+      <div>
+        <button onClick={() => (window.location.href = "/completed")}>
+          CompletedTasks
+        </button>
+      </div>
       <div className="p-2 bg-red-200 text-center mt-100 cursor-pointer">
         <button
-          onClick={logout}
+          onClick={handleLogout}
           className="text-red-600 underline text-sm cursor-pointer"
         >
           Logout

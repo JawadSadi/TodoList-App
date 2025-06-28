@@ -8,8 +8,11 @@ export default function TodoList() {
   const currentUser = useAuthStore((s) => s.currentUser);
   const todosByUser = useTodoStore((s) => s.todosByUser);
   const todos = todosByUser[currentUser ?? ""] || [];
-  const filtered = todos.filter(
+
+  const visibleTodos = todos.filter(
     (todo) =>
+      !todo.completed &&
+      !todo.deleted &&
       todo.category === currentCategory &&
       todo.text.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -17,7 +20,7 @@ export default function TodoList() {
   return (
     <ul className="space-y-2">
       <AnimatePresence>
-        {filtered.map((todo) => (
+        {visibleTodos.map((todo) => (
           <TodoItem key={todo.id} todo={todo} />
         ))}
       </AnimatePresence>

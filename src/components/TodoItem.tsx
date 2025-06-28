@@ -80,7 +80,14 @@ export default function TodoItem({ todo }: { todo: Todo }) {
                 ✎
               </button>
               <button
-                onClick={() => deleteTodo(todo.id)}
+                onClick={() => {
+                  const confirmed = window.confirm(
+                    "Are you sure you want to delete this task?"
+                  );
+                  if (confirmed) {
+                    deleteTodo(todo.id);
+                  }
+                }}
                 className="text-red-500 hover:text-red-700"
               >
                 ✕

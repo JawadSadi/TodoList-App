@@ -69,6 +69,7 @@ export const useTodoStore = create<TodoState>()(
           completed: false,
           createdAt: Date.now(),
           notified: false,
+          deleted: false,
         };
 
         set((state) => ({
@@ -83,27 +84,36 @@ export const useTodoStore = create<TodoState>()(
         const user = get().currentUser;
         if (!user) return;
         const todos = get().todosByUser[user] || [];
+
         set((state) => ({
           todosByUser: {
             ...state.todosByUser,
-            [user]: todos.map((t) =>
-              t.id === id ? { ...t, completed: !t.completed } : t
+            [user]: todos.map((todo) =>
+              todo.id === id
+                ? {
+                    ...todo,
+                    completed: !todo.completed,
+                    completedAt: !todo.completed ? Date.now() : undefined, // ✅
+                  }
+                : todo
             ),
           },
         }));
       },
 
-      deleteTodo: (id) => {
-        const user = get().currentUser;
-        if (!user) return;
-        const todos = get().todosByUser[user] || [];
-        set((state) => ({
-          todosByUser: {
-            ...state.todosByUser,
-            [user]: todos.filter((t) => t.id !== id),
-          },
-        }));
-      },
+      deleteTodo: (id) =>
+        set((state) => {
+          const user = state.currentUser ?? "";
+          const updatedTodos = (state.todosByUser[user] || []).filter(
+            (todo) => todo.id !== id
+          );
+          return {
+            todosByUser: {
+              ...state.todosByUser,
+              [user]: updatedTodos,
+            },
+          };
+        }),
 
       markAsNotified: (id) => {
         const user = get().currentUser;
