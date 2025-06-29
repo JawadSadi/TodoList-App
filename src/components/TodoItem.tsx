@@ -3,6 +3,8 @@ import { useState } from "react";
 import { useTodoStore } from "../store/todoStore";
 import { format } from "date-fns";
 import type { Todo } from "../types/todo";
+import ConfirmDialog from "./ConfirmDialog";
+import { FaPen, FaTrash } from "react-icons/fa";
 
 export default function TodoItem({ todo }: { todo: Todo }) {
   const { toggleTodo, deleteTodo, editTodo } = useTodoStore();
@@ -20,6 +22,40 @@ export default function TodoItem({ todo }: { todo: Todo }) {
       editTodo(todo.id, newText, newDeadline);
       setIsEditing(false);
     }
+  };
+
+  const [dialog, setDialog] = useState<null | {
+    action: "delete" | "complete";
+    todoId: string;
+  }>(null);
+
+  // حالت محلی چک‌باکس برای کنترل بصری
+  const [checked, setChecked] = useState(todo.completed);
+
+  // وقتی کاربر روی چک‌باکس کلیک می‌کند، ابتدا دیالوگ تایید باز شود
+  const onCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    e.preventDefault(); // جلوگیری از تغییر مستقیم چک‌باکس
+    if (!checked) {
+      // فقط وقتی می‌خواهیم تسک را تکمیل کنیم، تایید بگیریم
+      setDialog({ action: "complete", todoId: todo.id });
+    } else {
+      // اگر می‌خواهیم تیک را برداریم (برگرداندن به حالت انجام نشده) بدون تایید مستقیم انجام می‌شود
+      toggleTodo(todo.id);
+      setChecked(false);
+    }
+  };
+
+  // بعد از تایید دیالوگ
+  const handleConfirm = () => {
+    if (!dialog) return;
+
+    if (dialog.action === "delete") {
+      deleteTodo(dialog.todoId);
+    } else if (dialog.action === "complete") {
+      toggleTodo(dialog.todoId);
+      setChecked(true);
+    }
+    setDialog(null);
   };
 
   return (
@@ -64,33 +100,35 @@ export default function TodoItem({ todo }: { todo: Todo }) {
       ) : (
         <>
           <div className="flex justify-between items-center">
-            <span
-              onClick={() => toggleTodo(todo.id)}
-              className={`cursor-pointer flex-1 ${
-                todo.completed ? "line-through text-gray-400" : ""
-              }`}
-            >
-              {todo.text}
-            </span>
-            <div className="flex gap-2">
+            <label className="flex items-center gap-2 flex-1 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={onCheckboxChange}
+                className="w-5 h-5 cursor-pointer"
+              />
+              <span
+                className={`${
+                  todo.completed ? "line-through text-gray-400" : ""
+                }`}
+              >
+                {todo.text}
+              </span>
+            </label>
+            <div className="flex gap-3">
               <button
                 onClick={() => setIsEditing(true)}
                 className="text-blue-500 hover:text-blue-700"
+                title="Edit task"
               >
-                ✎
+                <FaPen color="grey" cursor={"pointer"} size={18} />
               </button>
               <button
-                onClick={() => {
-                  const confirmed = window.confirm(
-                    "Are you sure you want to delete this task?"
-                  );
-                  if (confirmed) {
-                    deleteTodo(todo.id);
-                  }
-                }}
-                className="text-red-500 hover:text-red-700"
+                onClick={() => setDialog({ action: "delete", todoId: todo.id })}
+                className="text-red-600 hover:underline text-sm"
+                title="Delete task"
               >
-                ✕
+                <FaTrash size={18} cursor={"pointer"} />
               </button>
             </div>
           </div>
@@ -103,6 +141,19 @@ export default function TodoItem({ todo }: { todo: Todo }) {
               </span>
             )}
           </div>
+          <ConfirmDialog
+            isOpen={dialog !== null}
+            title={
+              dialog?.action === "delete" ? "Delete Task" : "Complete Task"
+            }
+            message={
+              dialog?.action === "delete"
+                ? "Are you sure you want to delete this task?"
+                : "Are you sure you completed this task?"
+            }
+            onConfirm={handleConfirm}
+            onCancel={() => setDialog(null)}
+          />
         </>
       )}
     </motion.li>
