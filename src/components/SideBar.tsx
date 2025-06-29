@@ -49,6 +49,7 @@ export default function Sidebar() {
         <TodoSearch />
         {categories.map((cat) => (
           <li
+            onClick={() => (window.location.href = "/")}
             key={cat}
             className={`group flex items-center justify-between px-3 py-2 rounded ${
               cat === currentCategory
@@ -109,16 +110,16 @@ export default function Sidebar() {
           + Add Category
         </button>
       </div>
-      <div>
-        <button onClick={() => (window.location.href = "/completed")}>
-          CompletedTasks
+      <div className="mt-4 w-full bg-green-500 hover:bg-green-600 cursor-pointer text-white px-3 py-2 rounded">
+        <button
+          onClick={() => (window.location.href = "/completed")}
+          className=" cursor-pointer"
+        >
+          Completed Tasks
         </button>
       </div>
-      <div className="p-2 bg-red-200 text-center mt-100 cursor-pointer">
-        <button
-          onClick={handleLogout}
-          className="text-red-600 underline text-sm cursor-pointer"
-        >
+      <div className="mt-10 w-full bg-red-500 hover:bg-red-600 cursor-pointer text-white px-3 py-2 rounded">
+        <button onClick={handleLogout} className="text-center  cursor-pointer">
           Logout
         </button>
       </div>
